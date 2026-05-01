@@ -1,12 +1,11 @@
 """Translator CLI entry point.
 
-Pipeline: config → read selection → detect direction → translate → display.
-v1 prints to stdout; popup is wired in Task 8.
+Pipeline: config → read selection → detect direction → translate → popup.
 """
 import subprocess
 import sys
 
-from translator import clipboard, config, detect, minimax
+from translator import clipboard, config, detect, minimax, popup
 
 
 def notify(message: str) -> None:
@@ -39,14 +38,10 @@ def main() -> int:
     try:
         translation = minimax.translate(text, direction, **cfg)
     except minimax.TranslateError as e:
-        notify(f"翻译失败: {e}")
+        popup.show(text, f"❌ {e}", truncated)
         return 1
 
-    # MVP: print to stdout. Replaced by popup in Task 8.
-    if truncated:
-        print("[已截断到 2000 字符]")
-    print(f"原文: {text}")
-    print(f"译文: {translation}")
+    popup.show(text, translation, truncated)
     return 0
 
 
