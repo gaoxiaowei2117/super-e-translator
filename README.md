@@ -30,11 +30,14 @@ Direction is auto-detected: ≥30% Chinese characters → translate to English; 
 
 ```toml
 api_key  = "your-minimax-key"
-model    = "abab6.5s-chat"
-endpoint = "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+model    = "MiniMax-M2.5-highspeed"
+endpoint = "https://api.minimaxi.com/anthropic/v1/messages"
 ```
 
-`model` and `endpoint` are optional; defaults shown.
+`model` and `endpoint` are optional; defaults shown. Other supported models:
+`MiniMax-M2.7`, `MiniMax-M2.7-highspeed`, `MiniMax-M2.5`, `MiniMax-M2.1`,
+`MiniMax-M2.1-highspeed`, `MiniMax-M2`. All go through the same Anthropic-style
+endpoint.
 
 ## Development
 
