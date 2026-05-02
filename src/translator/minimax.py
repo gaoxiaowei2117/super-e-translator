@@ -1,3 +1,11 @@
+"""MiniMax client (Anthropic-compatible API).
+
+MiniMax's current text models (M2 series) are exposed via an Anthropic-style
+Messages API at https://api.minimaxi.com/anthropic/v1/messages.
+
+Response `content` is a list of blocks; we keep only `type=="text"` blocks
+and drop `type=="thinking"` (M2 reasoning chain).
+"""
 import httpx
 
 PROMPTS = {
@@ -23,19 +31,20 @@ def translate(
     api_key: str,
     model: str,
     endpoint: str,
-    timeout: float = 15.0,
+    timeout: float = 30.0,
 ) -> str:
     payload = {
         "model": model,
-        "messages": [
-            {"role": "system", "content": PROMPTS[direction]},
-            {"role": "user", "content": text},
-        ],
-        "temperature": 0.3,
         "max_tokens": 2048,
+        "system": PROMPTS[direction],
+        "messages": [
+            {"role": "user", "content": [{"type": "text", "text": text}]}
+        ],
+        "temperature": 1.0,
     }
     headers = {
         "Authorization": f"Bearer {api_key}",
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
     }
 
@@ -51,22 +60,26 @@ def translate(
             except ValueError as e:
                 raise TranslateError(f"响应解析失败: {r.text[:200]}") from e
 
-            # MiniMax returns HTTP 200 with errors in base_resp (status_code != 0).
-            base_resp = body.get("base_resp") or {}
-            err_code = base_resp.get("status_code")
-            if err_code not in (0, None):
-                raise TranslateError(
-                    f"MiniMax 错误 {err_code}: {base_resp.get('status_msg', '')}"
-                )
-
             try:
-                return body["choices"][0]["message"]["content"].strip()
+                blocks = body["content"]
+                texts = [b.get("text", "") for b in blocks if b.get("type") == "text"]
+                result = "".join(texts).strip()
             except (KeyError, IndexError, TypeError, AttributeError) as e:
                 raise TranslateError(f"响应解析失败: {str(body)[:200]}") from e
+
+            if not result:
+                raise TranslateError(f"响应中无 text 内容: {str(body)[:200]}")
+            return result
 
         if r.status_code >= 500 and attempt == 0:
             continue
 
-        raise TranslateError(f"HTTP {r.status_code}: {r.text[:200]}")
+        # Anthropic-style error envelope: {"type": "error", "error": {"message": "..."}}
+        try:
+            err = r.json().get("error") or {}
+            msg = err.get("message") or r.text[:200]
+        except ValueError:
+            msg = r.text[:200]
+        raise TranslateError(f"HTTP {r.status_code}: {msg}")
 
     raise TranslateError("unreachable")  # pragma: no cover

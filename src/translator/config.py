@@ -3,8 +3,8 @@ from pathlib import Path
 
 CONFIG_PATH = Path.home() / ".config" / "translator" / "config.toml"
 
-DEFAULT_MODEL = "MiniMax-Text-01"
-DEFAULT_ENDPOINT = "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+DEFAULT_MODEL = "MiniMax-M2.5-highspeed"
+DEFAULT_ENDPOINT = "https://api.minimaxi.com/anthropic/v1/messages"
 
 
 class ConfigError(Exception):

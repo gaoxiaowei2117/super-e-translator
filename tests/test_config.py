@@ -29,8 +29,8 @@ def test_defaults(tmp_path):
     p.write_text('api_key = "k"\n')
     cfg = load(p)
     assert cfg["api_key"] == "k"
-    assert cfg["model"] == "MiniMax-Text-01"
-    assert cfg["endpoint"] == "https://api.minimaxi.com/v1/text/chatcompletion_v2"
+    assert cfg["model"] == "MiniMax-M2.5-highspeed"
+    assert cfg["endpoint"] == "https://api.minimaxi.com/anthropic/v1/messages"
 
 
 def test_overrides(tmp_path):
