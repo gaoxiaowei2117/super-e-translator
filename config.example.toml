@@ -1,4 +1,4 @@
 # Copy this to ~/.config/translator/config.toml and fill in your API key.
 api_key  = ""
-model    = "abab6.5s-chat"
+model    = "MiniMax-Text-01"
 endpoint = "https://api.minimaxi.com/v1/text/chatcompletion_v2"

@@ -3,7 +3,7 @@ from pathlib import Path
 
 CONFIG_PATH = Path.home() / ".config" / "translator" / "config.toml"
 
-DEFAULT_MODEL = "abab6.5s-chat"
+DEFAULT_MODEL = "MiniMax-Text-01"
 DEFAULT_ENDPOINT = "https://api.minimaxi.com/v1/text/chatcompletion_v2"
 
 

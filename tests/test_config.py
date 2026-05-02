@@ -29,7 +29,7 @@ def test_defaults(tmp_path):
     p.write_text('api_key = "k"\n')
     cfg = load(p)
     assert cfg["api_key"] == "k"
-    assert cfg["model"] == "abab6.5s-chat"
+    assert cfg["model"] == "MiniMax-Text-01"
     assert cfg["endpoint"] == "https://api.minimaxi.com/v1/text/chatcompletion_v2"
 
 
