@@ -47,9 +47,22 @@ def translate(
 
         if r.status_code < 400:
             try:
-                return r.json()["choices"][0]["message"]["content"].strip()
-            except (KeyError, IndexError, ValueError) as e:
+                body = r.json()
+            except ValueError as e:
                 raise TranslateError(f"响应解析失败: {r.text[:200]}") from e
+
+            # MiniMax returns HTTP 200 with errors in base_resp (status_code != 0).
+            base_resp = body.get("base_resp") or {}
+            err_code = base_resp.get("status_code")
+            if err_code not in (0, None):
+                raise TranslateError(
+                    f"MiniMax 错误 {err_code}: {base_resp.get('status_msg', '')}"
+                )
+
+            try:
+                return body["choices"][0]["message"]["content"].strip()
+            except (KeyError, IndexError, TypeError, AttributeError) as e:
+                raise TranslateError(f"响应解析失败: {str(body)[:200]}") from e
 
         if r.status_code >= 500 and attempt == 0:
             continue

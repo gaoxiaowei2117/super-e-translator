@@ -79,3 +79,20 @@ def test_malformed_response(httpx_mock):
     httpx_mock.add_response(json={"unexpected": "shape"})
     with pytest.raises(TranslateError, match="解析"):
         _call()
+
+
+def test_minimax_error_in_base_resp(httpx_mock):
+    httpx_mock.add_response(
+        json={
+            "choices": None,
+            "base_resp": {"status_code": 1004, "status_msg": "auth failed"},
+        }
+    )
+    with pytest.raises(TranslateError, match="1004.*auth failed"):
+        _call()
+
+
+def test_null_choices_without_base_resp(httpx_mock):
+    httpx_mock.add_response(json={"choices": None})
+    with pytest.raises(TranslateError, match="解析"):
+        _call()
