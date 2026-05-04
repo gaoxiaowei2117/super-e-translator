@@ -9,11 +9,16 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, Gtk  # noqa: E402
+from gi.repository import Gdk, Gio, Gtk  # noqa: E402
 
 
 def show(original: str, translation: str, truncated: bool = False) -> None:
-    app = Gtk.Application(application_id="com.xgao.translator")
+    # NON_UNIQUE so a second translator invocation doesn't get routed into the
+    # already-running instance (which would replay its captured closure).
+    app = Gtk.Application(
+        application_id="com.xgao.translator",
+        flags=Gio.ApplicationFlags.NON_UNIQUE,
+    )
 
     def on_activate(application: Gtk.Application) -> None:
         win = Gtk.ApplicationWindow(application=application, title="Translator")
