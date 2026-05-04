@@ -7,7 +7,7 @@ echo "==> Installing system dependencies (apt)..."
 sudo apt install -y \
     python3-gi gir1.2-gtk-4.0 \
     wl-clipboard libnotify-bin \
-    flameshot \
+    gnome-screenshot \
     pipx
 
 echo "==> Ensuring pipx PATH..."
