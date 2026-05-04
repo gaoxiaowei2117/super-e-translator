@@ -118,3 +118,79 @@ def test_empty_text_blocks(httpx_mock):
     httpx_mock.add_response(json={"content": [{"type": "thinking", "thinking": "..."}]})
     with pytest.raises(TranslateError, match="无 text"):
         _call()
+
+
+# ----- translate_image (MiniMax VLM coding-plan endpoint) -----
+
+import base64
+
+from translator.minimax import VLM_ENDPOINT, translate_image
+
+PNG_BYTES = b"\x89PNG\r\n\x1a\nfake png body"
+
+
+def _vlm_ok(content="你好世界"):
+    return {"content": content, "base_resp": {"status_code": 0, "status_msg": "success"}}
+
+
+def test_translate_image_returns_content(httpx_mock):
+    httpx_mock.add_response(json=_vlm_ok("你好"))
+    assert translate_image(PNG_BYTES, api_key="k") == "你好"
+
+
+def test_translate_image_request_shape(httpx_mock):
+    httpx_mock.add_response(json=_vlm_ok())
+    translate_image(PNG_BYTES, api_key="my-key")
+    req = httpx_mock.get_request()
+    assert req.url == VLM_ENDPOINT
+    assert req.method == "POST"
+    assert req.headers["authorization"] == "Bearer my-key"
+    assert req.headers["mm-api-source"] == "Minimax-MCP"
+    body = json.loads(req.read())
+    expected_b64 = base64.b64encode(PNG_BYTES).decode("ascii")
+    assert body["image_url"] == f"data:image/png;base64,{expected_b64}"
+    assert "Simplified Chinese" in body["prompt"]
+
+
+def test_translate_image_custom_prompt(httpx_mock):
+    httpx_mock.add_response(json=_vlm_ok())
+    translate_image(PNG_BYTES, api_key="k", prompt="extract text only")
+    body = json.loads(httpx_mock.get_request().read())
+    assert body["prompt"] == "extract text only"
+
+
+def test_translate_image_strips_whitespace(httpx_mock):
+    httpx_mock.add_response(json=_vlm_ok("  你好  \n"))
+    assert translate_image(PNG_BYTES, api_key="k") == "你好"
+
+
+def test_translate_image_4xx(httpx_mock):
+    httpx_mock.add_response(status_code=401, text="unauthorized")
+    with pytest.raises(TranslateError, match="401"):
+        translate_image(PNG_BYTES, api_key="k")
+
+
+def test_translate_image_network_error(httpx_mock):
+    httpx_mock.add_exception(httpx.ConnectError("dns fail"))
+    with pytest.raises(TranslateError, match="网络"):
+        translate_image(PNG_BYTES, api_key="k")
+
+
+def test_translate_image_base_resp_error(httpx_mock):
+    httpx_mock.add_response(
+        json={"content": "", "base_resp": {"status_code": 2061, "status_msg": "not supported"}}
+    )
+    with pytest.raises(TranslateError, match="2061.*not supported"):
+        translate_image(PNG_BYTES, api_key="k")
+
+
+def test_translate_image_empty_content(httpx_mock):
+    httpx_mock.add_response(json={"content": "", "base_resp": {"status_code": 0}})
+    with pytest.raises(TranslateError, match="content"):
+        translate_image(PNG_BYTES, api_key="k")
+
+
+def test_translate_image_malformed_json(httpx_mock):
+    httpx_mock.add_response(text="not json")
+    with pytest.raises(TranslateError, match="解析"):
+        translate_image(PNG_BYTES, api_key="k")

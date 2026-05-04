@@ -11,6 +11,7 @@ dependencies = ["httpx>=0.27"]
 
 [project.scripts]
 translator = "translator.cli:main"
+translator-image = "translator.cli_image:main"
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "pytest-httpx>=0.30"]
