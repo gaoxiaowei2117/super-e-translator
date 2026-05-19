@@ -120,6 +120,33 @@ def test_empty_text_blocks(httpx_mock):
         _call()
 
 
+# ----- lookup_word (uses the same Anthropic chat path) -----
+
+from translator.minimax import DICTIONARY_PROMPT, lookup_word
+
+
+def test_lookup_word_returns_entry(httpx_mock):
+    httpx_mock.add_response(
+        json={"content": [{"type": "text", "text": "/rʌn/\nv. 跑；运行；管理"}]}
+    )
+    out = lookup_word("run", api_key=API_KEY, model=MODEL, endpoint=ENDPOINT)
+    assert out == "/rʌn/\nv. 跑；运行；管理"
+
+
+def test_lookup_word_uses_dictionary_system_prompt(httpx_mock):
+    httpx_mock.add_response(json=_ok())
+    lookup_word("hello", api_key=API_KEY, model=MODEL, endpoint=ENDPOINT)
+    body = json.loads(httpx_mock.get_request().read())
+    assert body["system"] == DICTIONARY_PROMPT
+    assert body["messages"][0]["content"][0]["text"] == "hello"
+
+
+def test_lookup_word_propagates_4xx(httpx_mock):
+    httpx_mock.add_response(status_code=401, text="bad")
+    with pytest.raises(TranslateError, match="401"):
+        lookup_word("hi", api_key=API_KEY, model=MODEL, endpoint=ENDPOINT)
+
+
 # ----- translate_image (MiniMax VLM coding-plan endpoint) -----
 
 import base64

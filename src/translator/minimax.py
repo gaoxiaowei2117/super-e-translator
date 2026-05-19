@@ -32,26 +32,48 @@ PROMPTS = {
     ),
 }
 
+DICTIONARY_PROMPT = (
+    "Look up the English word and produce a compact dictionary entry in this "
+    "exact format:\n"
+    "/<IPA>/\n"
+    "<POS>. <meaning>；<meaning>；...\n"
+    "<POS>. <meaning>；<meaning>；...\n"
+    "\n"
+    "Rules:\n"
+    "- Use standard POS abbreviations: n., v., adj., adv., prep., conj., int., "
+    "pron., det.\n"
+    "- One line per POS, most common first.\n"
+    "- Separate Chinese meanings with full-width semicolons (；).\n"
+    "- IPA must be enclosed in slashes.\n"
+    "- Output ONLY the entry — no markdown, no preamble, no explanation.\n"
+    "- If the word is not a valid English word, output exactly: [未找到该单词]"
+)
+
 
 class TranslateError(Exception):
     pass
 
 
-def translate(
-    text: str,
-    direction: str,
+def _anthropic_chat(
+    system: str,
+    user_text: str,
     *,
     api_key: str,
     model: str,
     endpoint: str,
-    timeout: float = 30.0,
+    timeout: float,
 ) -> str:
+    """POST to MiniMax Anthropic-compatible Messages API, return the text reply.
+
+    Concatenates all `type=="text"` blocks from `content`; drops `thinking`.
+    Retries once on 5xx. Raises TranslateError on any failure.
+    """
     payload = {
         "model": model,
         "max_tokens": 2048,
-        "system": PROMPTS[direction],
+        "system": system,
         "messages": [
-            {"role": "user", "content": [{"type": "text", "text": text}]}
+            {"role": "user", "content": [{"type": "text", "text": user_text}]}
         ],
         "temperature": 1.0,
     }
@@ -96,6 +118,36 @@ def translate(
         raise TranslateError(f"HTTP {r.status_code}: {msg}")
 
     raise TranslateError("unreachable")  # pragma: no cover
+
+
+def translate(
+    text: str,
+    direction: str,
+    *,
+    api_key: str,
+    model: str,
+    endpoint: str,
+    timeout: float = 30.0,
+) -> str:
+    return _anthropic_chat(
+        PROMPTS[direction], text,
+        api_key=api_key, model=model, endpoint=endpoint, timeout=timeout,
+    )
+
+
+def lookup_word(
+    word: str,
+    *,
+    api_key: str,
+    model: str,
+    endpoint: str,
+    timeout: float = 30.0,
+) -> str:
+    """Look up an English word; return formatted dict entry (IPA + POS lines)."""
+    return _anthropic_chat(
+        DICTIONARY_PROMPT, word,
+        api_key=api_key, model=model, endpoint=endpoint, timeout=timeout,
+    )
 
 
 def translate_image(

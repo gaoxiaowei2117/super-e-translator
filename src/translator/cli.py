@@ -29,19 +29,21 @@ def main() -> int:
         notify(str(e))
         return 1
 
-    if not text.strip():
+    stripped = text.strip()
+    if not stripped:
         notify("请先选中要翻译的文字")
         return 0
 
-    direction = detect.direction(text)
-
     try:
-        translation = minimax.translate(text, direction, **cfg)
+        if detect.is_single_word(stripped):
+            result = minimax.lookup_word(stripped, **cfg)
+        else:
+            result = minimax.translate(text, detect.direction(text), **cfg)
     except minimax.TranslateError as e:
         popup.show(text, f"❌ {e}", truncated)
         return 1
 
-    popup.show(text, translation, truncated)
+    popup.show(text, result, truncated)
     return 0
 
 
