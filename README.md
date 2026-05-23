@@ -12,10 +12,6 @@
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="MIT"/>
 </p>
 
-<p align="center">
-  <img src="docs/demo.gif" alt="demo" width="640" onerror="this.style.display='none'"/>
-</p>
-
 ---
 
 ## ✨ Why
@@ -44,13 +40,13 @@ The Linux installer:
 
 - ✅ installs apt deps (`python3-gi`, `gir1.2-gtk-4.0`, `wl-clipboard`, `libnotify-bin`, `gnome-screenshot`, `pipx`)
 - ✅ installs the `translator` command into `~/.local/bin` via `pipx` (with `--system-site-packages` so the venv can use the apt-installed PyGObject)
-- ✅ registers <kbd>Super</kbd>+<kbd>E</kbd> (text) and <kbd>Super</kbd>+<kbd>R</kbd> (screenshot) as GNOME custom keybindings
+- ✅ registers <kbd>Super</kbd>+<kbd>E</kbd> (text) and <kbd>Super</kbd>+<kbd>R</kbd> (screenshot) as GNOME custom keybindings via `gsettings`
 
 ### macOS
 
 The macOS installer:
 
-- ✅ installs `python-tk`, `pipx`, and `skhd` via Homebrew (Tkinter for the popup, skhd for global hotkeys — no GTK needed)
+- ✅ installs `python-tk` + `pipx` from Homebrew, and `skhd` from the `koekeishiya/formulae` tap (Tkinter for the popup, skhd for global hotkeys — no GTK needed)
 - ✅ installs `translator` and `translator-image` into `~/.local/bin` via `pipx`
 - ✅ writes <kbd>⌘⌃E</kbd> and <kbd>⌘⌃R</kbd> bindings into `~/.config/skhd/skhdrc` and starts the skhd launchd service
 
@@ -77,7 +73,7 @@ Direction is auto-detected: ≥30% Chinese characters → translate **to English
 
 For a single English word, you get a dictionary entry (IPA + POS-grouped meanings) instead of a sentence translation.
 
-For images: press the screenshot hotkey, drag-select a region, get a translation of the text inside.
+For images: press <kbd>Super</kbd>+<kbd>R</kbd> (Linux) / <kbd>⌘⌃R</kbd> (macOS), drag-select a region, get a translation of the text inside.
 
 ## ⚙️ Configuration
 
