@@ -2,18 +2,10 @@
 
 Pipeline: config → read selection → detect direction → translate → popup.
 """
-import subprocess
 import sys
 
 from translator import clipboard, config, detect, minimax, popup
-
-
-def notify(message: str) -> None:
-    """Best-effort GNOME notification. Silent if notify-send is missing."""
-    try:
-        subprocess.run(["notify-send", "Translator", message], timeout=2)
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        print(f"NOTIFY: {message}", file=sys.stderr)
+from translator.notify import notify
 
 
 def main() -> int:

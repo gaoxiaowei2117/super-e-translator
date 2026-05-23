@@ -1,19 +1,12 @@
 """Image-translate CLI entry point.
 
-Pipeline: config → flameshot screenshot → MiniMax VLM → popup.
-Bound to Super+R via GNOME custom-keybinding (set up in install.sh).
+Pipeline: config → interactive screenshot → MiniMax VLM → popup.
+Bound to Super+R (Linux) / a Shortcut (macOS) — see install.sh.
 """
-import subprocess
 import sys
 
 from translator import config, minimax, popup, screenshot
-
-
-def notify(message: str) -> None:
-    try:
-        subprocess.run(["notify-send", "Translator", message], timeout=2)
-    except (FileNotFoundError, subprocess.TimeoutExpired):
-        print(f"NOTIFY: {message}", file=sys.stderr)
+from translator.notify import notify
 
 
 def main() -> int:
